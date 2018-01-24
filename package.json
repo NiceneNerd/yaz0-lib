@@ -4,12 +4,12 @@
     "main": "bindings.js",
     "scripts": {
         "compile": "node-gyp rebuild",
-        "start": "node main.js"
+        "start": "node main.js",
+        "install": "echo 'Auto-build for NPM disabled, this module is only for Electron'"
     },
     "license": "GPL-3.0",
     "dependencies": {
-        "nan": "^2.8.0",
-        "node-gyp": "^3.6.2"
+        "nan": "^2.8.0"
     },
     "gypfile": true
 }
