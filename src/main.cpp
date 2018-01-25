@@ -14,7 +14,19 @@ void buffer_delete_callback(char* data, void* vector)
 
 NAN_METHOD(decode)
 {
+    if(info.Length() < 1)
+    {
+        Nan::ThrowTypeError("Wrong number of arguments (1 or 2 needed)");
+        return;
+    }
+
+    int dataSize = -1;
     auto bufferInObj = info[0]->ToObject();
+
+    if(info.Length() >= 2)
+    {
+        dataSize = (int)info[1]->NumberValue();
+    }
 
     u8* bufferIn = (u8*)node::Buffer::Data(bufferInObj);
     auto bufferInSize = node::Buffer::Length(bufferInObj);
@@ -22,7 +34,7 @@ NAN_METHOD(decode)
     std::vector<u8> *bufferOut = new std::vector<u8>();
 
     auto yaz0 = YAZ0(bufferOut);
-    yaz0.decode(bufferIn, bufferInSize);
+    yaz0.decode(bufferIn, bufferInSize, dataSize);
 
     info.GetReturnValue().Set(Nan::NewBuffer((char*)yaz0.getData(), yaz0.getSize(), buffer_delete_callback, bufferOut).ToLocalChecked());
 }

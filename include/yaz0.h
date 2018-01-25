@@ -26,7 +26,7 @@ class YAZ0
     public:
         YAZ0(std::vector<u8> *bufferOut);
 
-        bool decode(u8* buffer, u32 bufferSize);
+        bool decode(u8* buffer, u32 bufferSize, s32 dataSize = -1);
 
         u8* getData();
         u32 getSize();

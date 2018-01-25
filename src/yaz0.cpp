@@ -7,7 +7,7 @@
 #include "../include/main_header.h"
 
 YAZ0::YAZ0(std::vector<u8> *bufferOut)
-: bufferOut(bufferOut), bufferOutPos(0), bufferInPos(0)
+: bufferOut(bufferOut)
 {
     for(int i=0; i<8; ++i)
         flags[i] = 0;
@@ -67,7 +67,7 @@ bool YAZ0::parseBlock()
     return true;
 }
 
-bool YAZ0::decode(u8* buffer, u32 bufferSize)
+bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
 {
     bufferIn = buffer;
 
@@ -83,6 +83,9 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize)
         return false;
     }
 
+    if(dataSize >= 0 && dataSize <= bufferOutSize)
+        bufferOutSize = dataSize;
+
     bufferOut->resize(bufferOutSize);
 
     // reade flags
@@ -92,7 +95,6 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize)
         flags[i] = bufferIn[bufferInPos++];
 
     // read all blocks
-
     while(parseBlock());
 
     return true;
