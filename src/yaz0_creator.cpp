@@ -6,31 +6,83 @@
 
 #include "../include/main_header.h"
 
+void YAZ0_Creator::writeFileHeader()
+{
+    for(auto c : "Yaz0")
+        bufferOut->push_back(c);
+
+    (*bufferOut)[4]   = ((bufferInSize >> 24) & 0xFF); // overwrite Yaz0's end of string zero
+    bufferOut->push_back((bufferInSize >> 16) & 0xFF);
+    bufferOut->push_back((bufferInSize >>  8) & 0xFF);
+    bufferOut->push_back((bufferInSize      ) & 0xFF);
+
+    for(int padding=0; padding<8; ++padding)
+        bufferOut->push_back(0);
+}
+
 void YAZ0_Creator::writeValue(u8 value)
 {
-    //printf(" ==> writeValue( %#04x )\n", value);   
     printf("#%d | %#02x: 1:1 (%#02x)\n", headerPos, bufferInPos, value);
 
     addToHeader(Type::Value);
+    bufferOut->push_back(value);
 }
 
 void YAZ0_Creator::writeCopy(u32 offset, u32 length)
 {
-    u32 offsetDiff = 1;
+    addToHeader(Type::Copy);
+    
+    u32 offsetDiff = 0;
     if(offset < bufferInPos)
-        offsetDiff = bufferInPos - offset;
+        offsetDiff = bufferInPos - offset - 1;
+
+    printf("writeCopy: @-%#04x len:%d\n", offsetDiff, length);
+
+    bufferOut->insert(bufferOut->end(), 3, 0);
+    auto buff = bufferOut->end() - 3;
+
+    buff[0] = (offsetDiff >> 8) & 0xF;
+    buff[1] = offsetDiff & 0xFF;
+
+    if(length > 0x11) // 3 bytes
+    {
+        buff[2] = (length - 0x12) & 0xFF;
+    }else{ // 2 bytes
+        buff[0] |= ((length-3) & 0xF) << 4;
+        bufferOut->pop_back();
+    }
 
     printf("#%d | %#02x: copy %d bytes @ %d\n", headerPos, bufferInPos, length, offsetDiff);
-
-    addToHeader(Type::Copy);
 }
 
-void YAZ0_Creator::addToHeader(YAZ0_Creator::Type types)
+void YAZ0_Creator::createHeader()
 {
-    --headerPos;
+    if(headerOffset != 0)
+        writeHeader();
+
+    headerOffset = bufferOut->size();
+    headerPos = 7;
+    bufferOut->push_back(0);
+}
+
+void YAZ0_Creator::addToHeader(YAZ0_Creator::Type type)
+{
     if(headerPos < 0) {
-        printf("\n== Header ==\n");
-        headerPos = 7;
+        printf("%c%c%c%c%c%c%c%c\n", ((headerValue >> 7) & 1) ? '1' : 'C',((headerValue >> 6) & 1) ? '1' : 'C',((headerValue >> 5) & 1) ? '1' : 'C',((headerValue >> 4) & 1) ? '1' : 'C',((headerValue >> 3) & 1) ? '1' : 'C',((headerValue >> 2) & 1) ? '1' : 'C',((headerValue >> 1) & 1) ? '1' : 'C',((headerValue >> 0) & 1) ? '1' : 'C');
+        createHeader();
+    }
+
+    headerValue |= (u8)type << headerPos;
+
+    --headerPos;
+}
+
+void YAZ0_Creator::writeHeader()
+{
+    if(headerPos != 7)
+    {
+        (*bufferOut)[headerOffset] = headerValue;
+        headerValue = 0;
     }
 }
 
@@ -95,36 +147,16 @@ u32 YAZ0_Creator::encodeByte(u32 valueOffset)
 bool YAZ0_Creator::encode(u8* buffer, u32 bufferSize, s32 dataSize)
 {
     bufferIn = buffer;
-    bufferInSize = bufferSize;
+    bufferInSize = dataSize >= 0 ? dataSize : bufferSize;
 
-    bufferInSize = 120;
+    writeFileHeader();
 
-    headerPos = 7;
+    createHeader();
     for(bufferInPos=0; bufferInPos<bufferInSize;) // go through every byte
     {
         bufferInPos += encodeByte(bufferInPos);
     }
+    writeHeader(); // write a maybe uncompleted header
 
     return true;
 }
-
-
-
-
-    /*
-        printf("\n== Header ==\n");
-        printf("%c%c%c%c%c%c%c%c\n", 
-        ((header >> 7) & 1) ? '1' : 'C',
-        ((header >> 6) & 1) ? '1' : 'C',
-        ((header >> 5) & 1) ? '1' : 'C',
-        ((header >> 4) & 1) ? '1' : 'C',
-        ((header >> 3) & 1) ? '1' : 'C',
-        ((header >> 2) & 1) ? '1' : 'C',
-        ((header >> 1) & 1) ? '1' : 'C',
-        ((header >> 0) & 1) ? '1' : 'C'
-    );
-    */
-
-    //printf("#%d | %#04x: ", i, bufferOutPos);
-        //printf(" 1:1\n");
-        //printf(" copy %d bytes @ %d\n", length, offset);

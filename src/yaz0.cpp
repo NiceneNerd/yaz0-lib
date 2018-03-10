@@ -28,8 +28,9 @@ u8 YAZ0::readIn()
 bool YAZ0::parseBlock()
 {
     u8 header = readIn();
+    
     /*
-    printf("\n== Header ==\n");
+    printf("\n== Header @%#04x ==\n", bufferInPos);
     printf("%c%c%c%c%c%c%c%c\n", 
         ((header >> 7) & 1) ? '1' : 'C',
         ((header >> 6) & 1) ? '1' : 'C',
@@ -40,10 +41,11 @@ bool YAZ0::parseBlock()
         ((header >> 1) & 1) ? '1' : 'C',
         ((header >> 0) & 1) ? '1' : 'C'
     );
-*/
+    */
+
     for(int i=7; i>=0; --i)
     {
-        //printf("#%d | %#04x: ", i, bufferOutPos);
+        //printf("#%d | %#04x[y:%#04x]: ", i, bufferOutPos, bufferInPos);
 
         if(bufferOutPos >= bufferOutSize)
             return false;
@@ -51,7 +53,8 @@ bool YAZ0::parseBlock()
         int chunkType = (header >> i) & 1;
         if(chunkType == 1)
         {   
-            //printf(" 1:1\n");
+            //u8 val = readIn();
+            //printf(" 1:1 (%#04x)\n", val);
             if(!writeOut(readIn()))
                 return false;
         }else{
@@ -104,7 +107,7 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
         bufferOutSize = dataSize;
 
     bufferOut->resize(bufferOutSize);
-
+    
     // reade flags
     bufferInPos = 8;
 

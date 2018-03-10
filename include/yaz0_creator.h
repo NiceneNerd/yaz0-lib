@@ -11,14 +11,21 @@ class YAZ0_Creator : public YAZ0_Base
 
         enum class Type { Copy, Value };
 
-        int headerPos = 0;
+        int headerPos    = 0;
+        int headerOffset = 0;
+        u8 headerValue   = 0;
+
+        void writeFileHeader();
 
         void writeValue(u8 value);
         void writeCopy(u32 offset, u32 length);
-        void addToHeader(Type types);
+
+        void createHeader();
+        void addToHeader(Type type);
+        void writeHeader();
 
         u32 encodeByte(u32 valueOffset);
-
+        
     public:
         YAZ0_Creator(std::vector<u8> *bufferOut) : YAZ0_Base(bufferOut) {}
 
