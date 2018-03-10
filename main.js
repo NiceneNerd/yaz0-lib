@@ -13,13 +13,20 @@ let buff = fs.readFileSync(filePath);
 
 //let filePath = "M:/Documents/roms/wiiu/unpacked/TEST/Dungeon001/Model/DgnMrgPrt_Dungeon001.sbfres";
 
-let buffOut = yaz0.decode(buff);
+let buffOut = yaz0.decode(buff, 300);
 console.log(buffOut);
 console.log(buffOut.length);
 
+let buffCompr = yaz0.encode(buffOut, buffOut.length);
+console.log(buffCompr);
+
+//fs.writeFileSync("out.bin", buffOut);
+
+/*
 let buffOut4 = yaz0.decode(buff, 4);
 console.log(buffOut4);
 console.log(buffOut4.length);
+*/
 
 /*
 magic:"Yaz0"

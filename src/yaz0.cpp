@@ -7,7 +7,7 @@
 #include "../include/main_header.h"
 
 YAZ0::YAZ0(std::vector<u8> *bufferOut)
-: bufferOut(bufferOut)
+: YAZ0_Base(bufferOut)
 {
     for(int i=0; i<8; ++i)
         flags[i] = 0;
@@ -28,15 +28,30 @@ u8 YAZ0::readIn()
 bool YAZ0::parseBlock()
 {
     u8 header = readIn();
-
+    /*
+    printf("\n== Header ==\n");
+    printf("%c%c%c%c%c%c%c%c\n", 
+        ((header >> 7) & 1) ? '1' : 'C',
+        ((header >> 6) & 1) ? '1' : 'C',
+        ((header >> 5) & 1) ? '1' : 'C',
+        ((header >> 4) & 1) ? '1' : 'C',
+        ((header >> 3) & 1) ? '1' : 'C',
+        ((header >> 2) & 1) ? '1' : 'C',
+        ((header >> 1) & 1) ? '1' : 'C',
+        ((header >> 0) & 1) ? '1' : 'C'
+    );
+*/
     for(int i=7; i>=0; --i)
     {
+        //printf("#%d | %#04x: ", i, bufferOutPos);
+
         if(bufferOutPos >= bufferOutSize)
             return false;
 
         int chunkType = (header >> i) & 1;
         if(chunkType == 1)
-        {
+        {   
+            //printf(" 1:1\n");
             if(!writeOut(readIn()))
                 return false;
         }else{
@@ -55,6 +70,8 @@ bool YAZ0::parseBlock()
             }else{
                 length = ((chunks[0] >> 4) & 0xF) + 0x02;
             }
+
+            //printf(" copy %d bytes @ %d\n", length, offset);
 
             for(int n=0; n<length; ++n)
             {
@@ -98,15 +115,4 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
     while(parseBlock());
 
     return true;
-}
-
-
-u8* YAZ0::getData()
-{
-    return bufferOut->data();
-}
-
-u32 YAZ0::getSize()
-{
-    return bufferOutSize;
 }

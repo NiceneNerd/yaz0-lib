@@ -7,7 +7,9 @@
         "target_name": "yaz0",
         "sources": [
             "src/main.cpp",
-            "src/yaz0.cpp"
+                "src/yaz0_base.cpp",
+                "src/yaz0.cpp",
+                "src/yaz0_creator.cpp"
         ],
         "cflags": [
           "-std=c++11",

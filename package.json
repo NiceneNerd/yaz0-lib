@@ -3,7 +3,8 @@
     "version": "1.0.3",
     "main": "bindings.js",
     "scripts": {
-        "compile": "node-gyp rebuild",
+        "recompile": "node-gyp rebuild",
+        "compile": "node-gyp build",
         "start": "node main.js",
         "install": "echo 'Auto-build for NPM disabled, this module is only for Electron'"
     },
