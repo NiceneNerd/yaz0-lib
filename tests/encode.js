@@ -73,7 +73,7 @@ describe('Yaz0 encoding', function()
 
     describe('encoding (copying)', function() 
     {
-        it('simple copy n<3, shouldn\'t copy (2,2,4,2,2)', function() 
+        it('simple copy n<3, shouldn\'t copy (2,2,x,2,2)', function() 
         {   
             helper.encodeAndAssert([
                 0x02,0x02, 0x04, 0x02,0x02, 
@@ -82,11 +82,8 @@ describe('Yaz0 encoding', function()
                 0x02, 0x02, 0x04, 0x02, 0x02
             ]);
         });
-    });
 
-    describe('encoding (copying)', function() 
-    {
-        it('simple copy n=3, offset=4 (2,2,2,4,2,2,2)', function() 
+        it('simple copy n=3, offset=4, start=0 (2,2,2,x,2,2,2)', function() 
         {   
             helper.encodeAndAssert([
                 0x02,0x02,0x02, 0x04, 0x02,0x02,0x02, 
@@ -96,5 +93,113 @@ describe('Yaz0 encoding', function()
                 ...helper.copyBytes(4, 3)         
             ]);
         });
+
+        it('simple copy n=3, offset=4, start=2 (x,x,2,2,2,x,2,2,2)', function() 
+        {   
+            helper.encodeAndAssert([
+                0xA1,0xA2, 
+                0x02,0x02,0x02, 0x04, 0x02,0x02,0x02, 
+            ],[ 
+                0b11111100,
+                0xA1, 0xA2, 
+                0x02, 0x02, 0x02, 0x04,
+                ...helper.copyBytes(4, 3)         
+            ]);
+        });
+
+        it('simple copy n=20, offset=4 (1...20,x,1...20)', function() 
+        {   
+            let N = 20;
+            let testArray = new Array(N + 1 + N);
+            testArray[N] = 0x04;
+
+            for(let i=0; i<N; ++i)
+                testArray[i] = testArray[i+N+1] = i+1;
+
+            helper.encodeAndAssert(testArray,
+            [ 
+                0b11111111,   1,  2,  3,  4,  5,  6,  7,  8,
+                0b11111111,   9, 10, 11, 12, 13, 14, 15, 16,
+                0b11111000,  17, 18, 19, 20, 0x04,
+                ...helper.copyBytes(N + 1, N)         
+            ]);
+        });
+
+        it('repeating copy n=5 at start (1,1,1,1,1,0)', function() 
+        {   
+            helper.encodeAndAssert([
+                1,1,1,1,1, 0
+            ],[ 
+                0b10100000, 
+                0x01, ...helper.copyBytes(1, 4),
+                0x00
+            ]);
+        });
+
+        it('repeating copy n=5 at end (0,1,1,1,1,1)', function() 
+        {   
+            helper.encodeAndAssert([
+                0, 1,1,1,1,1
+            ],[ 
+                0b11000000, 
+                0x00,
+                0x01 , ...helper.copyBytes(1, 4),
+            ]);
+        });
+
+        it('repeating copy n=5 at middle (0,1,1,1,1,1,0)', function() 
+        {   
+            helper.encodeAndAssert([
+                0, 1,1,1,1,1, 0
+            ],[ 
+                0b11010000, 
+                0x00,
+                0x01 , ...helper.copyBytes(1, 4),
+                0x00,
+            ]);
+        });
+
+        it('repeating copy n=6, whole stream (1...1)', function() 
+        {   
+            helper.encodeAndAssert([
+                1,1,1, 1,1,1
+            ],[ 
+                0b10000000, 0x01,
+                ...helper.copyBytes(1, 5)         
+            ]);
+        });
+    });
+
+    describe('encoding (rules)', function() 
+    {
+        it('search for biggest copy length (last is best)', function() 
+        {   
+            // it should pick up the second numbers for copying because it's longer
+            helper.encodeAndAssert([
+                1,2,3, 0xA0, 1,2,3,4, 0xA1, 1,2,3,4
+            ],[ 
+                0b11110110, 
+                1,2,3, 0xA0,
+                ...helper.copyBytes(4, 3),
+                4, 0xA1,
+                ...helper.copyBytes(5, 4)
+            ]);
+        });
+
+        it('search for biggest copy length (first is best)', function() 
+        {   
+            // the last copy should go back to the beginning (1-4) 
+            // and shouldn't pick up the (1-3)
+            helper.encodeAndAssert([
+                1,2,3,4, 0xA0, 1,2,3, 0xA1, 1,2,3,4
+            ],[ 
+                0b11111010, 
+                1,2,3,4, 0xA0,
+                ...helper.copyBytes(5, 3),
+                0xA1,
+                ...helper.copyBytes(9, 4)
+            ]);
+        });
+
     });
 });

@@ -20,6 +20,8 @@ typedef std::uint32_t u32;
 typedef std::int32_t s32;
 
 /**** Header ****/
-#include "yaz0_base.h"
-#include "yaz0.h"
-#include "yaz0_creator.h"
+
+#include "yaz0/chunk.h"
+#include "yaz0/base.h"
+#include "yaz0/parser.h"
+#include "yaz0/creator.h"

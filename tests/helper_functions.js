@@ -11,9 +11,11 @@ const YAZ0_HEADER_SIZE = 16;
 
 module.exports = class Helper_Functions
 {
-    printBuffer(buff)
+    printBuffer(buff, name = "Buffer")
     {
-        console.log("\n== Buffer (%d) ==", buff.length);
+        let tabs = "".padStart(6);
+
+        console.log(`\n${tabs}== ${name} ${buff.length} ==`);
 
         let str = "";
         for(let i=0; i<buff.length; ++i)
@@ -22,11 +24,11 @@ module.exports = class Helper_Functions
 
             if((i+1) % 8 == 0) 
             {
-                console.log(str);
+                console.log(tabs + str);
                 str = "";
             }
         }
-        console.log(str);
+        console.log(tabs + str);
     }
     
     /**
@@ -51,9 +53,18 @@ module.exports = class Helper_Functions
     encodeAndAssert(bufferInArray, bufferTestArray, offset = null, length = null,)
     {
         let buffCompr = yaz0.encode(Buffer.from(bufferInArray));
-        this.printBuffer(buffCompr);
-        this.printBuffer(Buffer.from(bufferTestArray));
-        this.assertData(buffCompr, Buffer.from(bufferTestArray), offset, length);
+
+        try{
+            this.assertData(buffCompr, Buffer.from(bufferTestArray), offset, length);
+        }catch(e)
+        {
+            this.printBuffer(Buffer.from(bufferInArray), "Input-Buffer");
+            this.printBuffer(buffCompr, "Yaz0-Buffer");
+            this.printBuffer(Buffer.from(bufferTestArray), "Test-Buffer");
+            console.log("");
+
+            throw e;
+        }
     }
 
     copyBytes(offset, length)

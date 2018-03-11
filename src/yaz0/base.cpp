@@ -4,20 +4,20 @@
 * @license GNU-GPLv3 - see the "LICENSE" file in the root directory
 */
 
-#include "../include/main_header.h"
+#include "../../include/main_header.h"
 
-YAZ0_Base::YAZ0_Base(std::vector<u8> *bufferOut)
+Yaz0::Base::Base(std::vector<u8> *bufferOut)
 : bufferOut(bufferOut)
 {
     
 }
 
-u8* YAZ0_Base::getData()
+u8* Yaz0::Base::getData()
 {
     return bufferOut->data();
 }
 
-u32 YAZ0_Base::getSize()
+u32 Yaz0::Base::getSize()
 {
     return (u32)bufferOut->size();
 }

@@ -33,7 +33,7 @@ NAN_METHOD(decode)
 
     std::vector<u8> *bufferOut = new std::vector<u8>();
 
-    auto yaz0 = YAZ0(bufferOut);
+    auto yaz0 = Yaz0::Parser(bufferOut);
     yaz0.decode(bufferIn, bufferInSize, dataSize);
 
     info.GetReturnValue().Set(Nan::NewBuffer((char*)yaz0.getData(), yaz0.getSize(), buffer_delete_callback, bufferOut).ToLocalChecked());
@@ -60,7 +60,7 @@ NAN_METHOD(encode)
 
     std::vector<u8> *bufferOut = new std::vector<u8>();
 
-    auto yaz0 = YAZ0_Creator(bufferOut);
+    auto yaz0 = Yaz0::Creator(bufferOut);
     yaz0.encode(bufferIn, bufferInSize, dataSize);
 
     info.GetReturnValue().Set(Nan::NewBuffer((char*)yaz0.getData(), yaz0.getSize(), buffer_delete_callback, bufferOut).ToLocalChecked());

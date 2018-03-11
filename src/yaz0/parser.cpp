@@ -4,28 +4,30 @@
 * @license GNU-GPLv3 - see the "LICENSE" file in the root directory
 */
 
-#include "../include/main_header.h"
+#include "../../include/main_header.h"
 
-YAZ0::YAZ0(std::vector<u8> *bufferOut)
-: YAZ0_Base(bufferOut)
+using Yaz0::Parser;
+
+Parser::Parser(std::vector<u8> *bufferOut)
+: Yaz0::Base(bufferOut)
 {
     for(int i=0; i<8; ++i)
         flags[i] = 0;
 }
 
-bool YAZ0::writeOut(u8 val)
+bool Parser::writeOut(u8 val)
 {
     (*bufferOut)[bufferOutPos++] = val;
 
     return (bufferOutPos < bufferOutSize);
 }
 
-u8 YAZ0::readIn()
+u8 Parser::readIn()
 {
     return bufferIn[bufferInPos++];
 }
 
-bool YAZ0::parseBlock()
+bool Parser::parseBlock()
 {
     u8 header = readIn();
     
@@ -87,7 +89,7 @@ bool YAZ0::parseBlock()
     return true;
 }
 
-bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
+bool Parser::decode(u8* buffer, u32 bufferSize, s32 dataSize)
 {
     bufferIn = buffer;
 
@@ -103,7 +105,7 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
         return false;
     }
 
-    if(dataSize >= 0 && dataSize <= bufferOutSize)
+    if(dataSize >= 0 && (u32)dataSize <= bufferOutSize)
         bufferOutSize = dataSize;
 
     bufferOut->resize(bufferOutSize);
