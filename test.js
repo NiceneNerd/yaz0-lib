@@ -13,7 +13,7 @@ let buff = fs.readFileSync(filePath);
 
 //let filePath = "M:/Documents/roms/wiiu/unpacked/TEST/Dungeon001/Model/DgnMrgPrt_Dungeon001.sbfres";
 
-let buffOut = yaz0.decode(buff, 120);
+let buffOut = yaz0.decode(buff);
 console.log(buffOut);
 console.log("Length: " + buffOut.length);
 console.log("");

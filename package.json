@@ -1,6 +1,6 @@
 {
     "name": "yaz0-lib",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "main": "bindings.js",
     "scripts": {
         "recompile": "node-gyp rebuild",
