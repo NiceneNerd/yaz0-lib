@@ -24,6 +24,19 @@ describe('Yaz0 encoding', function()
             ], 0, 16);
         });
 
+        it('correct byte-order (big)', function() 
+        {   
+            let testLength = 0x123;
+            let testData = new Array(testLength);
+            testData.fill(0);
+
+            helper.encodeAndAssert(testData,
+            [ 
+                0x59, 0x61, 0x7a, 0x30, 0x00, 0x00, 0x01, 0x23, // length should be Big-endian
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            ], 0, 16);
+        });
+
         it('empty buffer / 0 bytes', function() 
         {   
             helper.encodeAndAssert([/* nothing */],[ 
@@ -201,5 +214,41 @@ describe('Yaz0 encoding', function()
             ]);
         });
 
+        it('check longer repeating copy over normal copies (@mid)', function() 
+        {   
+            helper.encodeAndAssert([
+                1,1,1,1, 0xA1, 1,1,1,1, 1,1,1,1, 0xA2
+            ],[ 
+                0b10110100, 
+                1, ...helper.copyBytes(1, 3),
+                0xA1,
+                1, ...helper.copyBytes(1, 7),
+                0xA2
+            ]);
+        });
+
+        it('check longer repeating copy over normal copies (@end)', function() 
+        {   
+            helper.encodeAndAssert([
+                1,1,1,1, 0xA1, 1,1,1,1, 1,1,1,1
+            ],[ 
+                0b10110000, 
+                1, ...helper.copyBytes(1, 3),
+                0xA1,
+                1, ...helper.copyBytes(1, 7)
+            ]);
+        });
+
+        it('ignore shorter repeating copy over normal copies', function() 
+        {   
+            helper.encodeAndAssert([
+                1,1,1,1,1, 0xA2, 1,1,1,1,
+            ],[ 
+                0b10100000, 
+                1, ...helper.copyBytes(1, 4),
+                0xA2,
+                ...helper.copyBytes(5, 4)
+            ]);
+        });
     });
 });

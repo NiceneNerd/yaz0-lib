@@ -62,5 +62,4 @@ void Chunk::print()
         case Chunk_Type::Value : printf("Value");  break;
         default                : printf("Empty");  break;
     }
-    printf(", val:%#02x, offset:%#02x, length:%d\n", value, offset, length);
 }

@@ -112,20 +112,15 @@ u32 Creator::moveOffset(u32 num)
 void Creator::encodeByte()
 {
     auto bestChunk = Yaz0::Chunk(bufferIn[bufferInPos]);
-    u32 bestByteSize = 0;
+    u32 bestByteSize = 0; // @OPT: use as start index?
+
     // search same bytes
-    /*
     auto chunk = searchRepeatingBytes();
-    chunk.print();
     if(chunk.type == Yaz0::Chunk_Type::Repeat)
     {
-        // WIP
-        //writeValue(bufferIn[bufferInPos]);
-        //writeCopy(bufferInPos, sameByteCount);
-        return;
+        bestByteSize = chunk.getSize();
+        bestChunk = chunk;
     }
-    */
-
 
     // scan for previous bytes
     u32 maxOffset = std::min(bufferInPos, MAX_OFFSET);
@@ -137,8 +132,6 @@ void Creator::encodeByte()
         {
             bestChunk = chunk;
             bestByteSize = chunk.length;
-            //printf("best copy with: %d @%#04x\n", bestByteSize, bufferInPos);
-            //break;
         }
     }
 
@@ -181,18 +174,17 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset, u32 searchOffsetMax)
 
 Yaz0::Chunk Creator::searchRepeatingBytes()
 {
-    for(u32 scanOffset=bufferInPos; scanOffset<bufferInSize; ++scanOffset)
+    for(u32 scanOffset=bufferInPos; scanOffset<=bufferInSize; ++scanOffset)
     {
-        if(bufferIn[scanOffset] != bufferIn[bufferInPos])
+        if(scanOffset == bufferInSize || bufferIn[scanOffset] != bufferIn[bufferInPos])
         {
             u32 sameByteCount = scanOffset - bufferInPos;
-            if(sameByteCount > MIN_COPY_SIZE)
+            if(sameByteCount > MIN_COPY_SIZE+1)
             {
                 auto chunk = Chunk(
                     bufferIn[bufferInPos],
-                    scanOffset, sameByteCount-1
+                    bufferInPos, sameByteCount-1
                 );
-                chunk.print();
                 return chunk;
             }
             break;
