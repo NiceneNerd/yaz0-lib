@@ -22,7 +22,7 @@ namespace Yaz0
         Chunk(u32 offset, u32 length);
         Chunk(u8 value, u32 offset, u32 length);
 
-        u32 getSize();
+        s32 getSavedSize();
         bool empty();
 
         void print();

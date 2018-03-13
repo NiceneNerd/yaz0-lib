@@ -29,22 +29,17 @@ Chunk::Chunk(u8 value, u32 offset, u32 length)
 : type(Chunk_Type::Repeat), value(value), offset(offset), length(length) 
 {};
 
-u32 Chunk::getSize()
+s32 Chunk::getSavedSize()
 {
-    switch(type)
+    s32 savedSize = 0;
+    if(type == Chunk_Type::Copy || type == Chunk_Type::Repeat)
     {
-        case Chunk_Type::Copy:
-            return length;
-        
-        case Chunk_Type::Repeat:
-            return length + 1;
+        savedSize += length - (length > 0x11 ? 3 : 2);
 
-        case Chunk_Type::Value:
-            return 1;
-
-        default:
-            return 0;
+        if(type == Chunk_Type::Repeat)
+            --savedSize;
     }
+    return savedSize;
 }
 
 bool Chunk::empty()

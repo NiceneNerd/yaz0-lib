@@ -5,6 +5,7 @@
     "scripts": {
         "recompile": "node-gyp rebuild",
         "compile": "node-gyp build",
+        "compile-debug": "node-gyp build --debug",
         "install": "echo 'Auto-build for NPM disabled, this module is only for Electron'",
         "test": "mocha ./tests"
     },

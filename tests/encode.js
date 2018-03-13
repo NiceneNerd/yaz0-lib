@@ -9,8 +9,14 @@ const yaz0   = require("./../bindings.js");
 
 const Helper_Functions = require("./helper_functions.js");
 let helper = new Helper_Functions();
-
-describe('Yaz0 encoding', function() 
+/*
+let a = yaz0.encode(Buffer.from([1,1,1,1,1, 0]));
+console.log(a);
+let b = yaz0.decode(a);
+console.log(b);
+return;
+*/
+let testFunctions = () =>
 {
     describe('general', function() 
     {
@@ -181,6 +187,20 @@ describe('Yaz0 encoding', function()
                 ...helper.copyBytes(1, 5)         
             ]);
         });
+
+        it('repeating copy n > max. copy length, should split up', function() 
+        {   
+            let testLength = 0x222;
+            let testData = new Array(testLength);
+            testData.fill(0);
+
+            helper.encodeAndAssert(testData,
+            [ 
+                0b10000000,
+                0, ...helper.copyBytes(1, 0x111),
+                ...helper.copyBytes(1, 0x110)
+            ]);
+        });
     });
 
     describe('encoding (rules)', function() 
@@ -251,4 +271,10 @@ describe('Yaz0 encoding', function()
             ]);
         });
     });
-});
+};
+
+helper.decodeTests = false;
+describe('Yaz0 encoding', testFunctions);
+
+helper.decodeTests = true;
+describe('Yaz0 decode encoded tests', testFunctions);

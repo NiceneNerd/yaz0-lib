@@ -109,16 +109,27 @@ u32 Creator::moveOffset(u32 num)
     return num;
 }
 
+u32 sizeCounter = 0;
 void Creator::encodeByte()
 {
+    /*
+    if(++sizeCounter > 1024 * 10)
+    {
+        printf("pos: %dB/%dB || %dKB/%dKB || %d:MB/%dMB\n", 
+            bufferInPos,               bufferInSize,
+            bufferInPos / 1024,        bufferInSize / 1024,
+            bufferInPos / 1024 / 1024, bufferInSize / 1024 / 1024);
+        sizeCounter = 0;
+    }*/
+
     auto bestChunk = Yaz0::Chunk(bufferIn[bufferInPos]);
-    u32 bestByteSize = 0; // @OPT: use as start index?
+    s32 bestByteSize = 0; // @OPT: use as start index?
 
     // search same bytes
     auto chunk = searchRepeatingBytes();
     if(chunk.type == Yaz0::Chunk_Type::Repeat)
     {
-        bestByteSize = chunk.getSize();
+        bestByteSize = chunk.getSavedSize();
         bestChunk = chunk;
     }
 
@@ -128,10 +139,10 @@ void Creator::encodeByte()
     for(u32 scanBackOffset=1; scanBackOffset<=maxOffset; ++scanBackOffset) // scan through previous bytes
     {
         auto chunk = searchCopyBytes(scanBackOffset, searchOffsetMax);
-        if(!chunk.empty() && chunk.length > bestByteSize)
+        if(!chunk.empty() && chunk.getSavedSize() > bestByteSize)
         {
             bestChunk = chunk;
-            bestByteSize = chunk.length;
+            bestByteSize = chunk.getSavedSize();
         }
     }
 
@@ -174,9 +185,10 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset, u32 searchOffsetMax)
 
 Yaz0::Chunk Creator::searchRepeatingBytes()
 {
+    u32 copyLength = 0;
     for(u32 scanOffset=bufferInPos; scanOffset<=bufferInSize; ++scanOffset)
     {
-        if(scanOffset == bufferInSize || bufferIn[scanOffset] != bufferIn[bufferInPos])
+        if(copyLength > MAX_COPY_LENGTH || scanOffset == bufferInSize || bufferIn[scanOffset] != bufferIn[bufferInPos])
         {
             u32 sameByteCount = scanOffset - bufferInPos;
             if(sameByteCount > MIN_COPY_SIZE+1)
@@ -189,6 +201,7 @@ Yaz0::Chunk Creator::searchRepeatingBytes()
             }
             break;
         }
+        ++copyLength;
     }
 
     auto chunk = Chunk();

@@ -11,6 +11,11 @@ const YAZ0_HEADER_SIZE = 16;
 
 module.exports = class Helper_Functions
 {
+    constructor()
+    {
+        this.decodeTests = false;
+    }
+
     printBuffer(buff, name = "Buffer")
     {
         let tabs = "".padStart(6);
@@ -52,10 +57,17 @@ module.exports = class Helper_Functions
      */
     encodeAndAssert(bufferInArray, bufferTestArray, offset = null, length = null,)
     {
-        let buffCompr = yaz0.encode(Buffer.from(bufferInArray));
+        let bufferIn =Buffer.from(bufferInArray);
+        let buffCompr = yaz0.encode(bufferIn);
 
         try{
             this.assertData(buffCompr, Buffer.from(bufferTestArray), offset, length);
+            if(this.decodeTests)
+            {
+                let bufferDecoded = yaz0.decode(buffCompr);
+                console.log(bufferIn);
+                console.log(bufferDecoded);
+            }
         }catch(e)
         {
             this.printBuffer(Buffer.from(bufferInArray), "Input-Buffer");
