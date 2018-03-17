@@ -1,12 +1,11 @@
 {
     "name": "yaz0-lib",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "main": "bindings.js",
     "scripts": {
         "recompile": "node-gyp rebuild",
         "compile": "node-gyp build",
         "compile-debug": "node-gyp build --debug",
-        "install": "echo 'Auto-build for NPM disabled, this module is only for Electron'",
         "test": "mocha ./tests"
     },
     "license": "GPL-3.0",
