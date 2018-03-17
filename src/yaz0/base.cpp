@@ -6,18 +6,12 @@
 
 #include "../../include/main_header.h"
 
-Yaz0::Base::Base(std::vector<u8> *bufferOut)
-: bufferOut(bufferOut)
-{
-    
-}
-
 u8* Yaz0::Base::getData()
 {
-    return bufferOut->data();
+    return bufferOut.data();
 }
 
 u32 Yaz0::Base::getSize()
 {
-    return (u32)bufferOut->size();
+    return (u32)bufferOut.size();
 }

@@ -8,15 +8,8 @@ const assert = require('assert');
 const yaz0   = require("./../bindings.js");
 
 const Helper_Functions = require("./helper_functions.js");
-let helper = new Helper_Functions();
-/*
-let a = yaz0.encode(Buffer.from([1,1,1,1,1, 0]));
-console.log(a);
-let b = yaz0.decode(a);
-console.log(b);
-return;
-*/
-let testFunctions = () =>
+
+let testFunctions = (helper) =>
 {
     describe('general', function() 
     {
@@ -273,8 +266,10 @@ let testFunctions = () =>
     });
 };
 
+let helper = new Helper_Functions();
 helper.decodeTests = false;
-describe('Yaz0 encoding', testFunctions);
+describe('Yaz0 encoding', () => { testFunctions(helper) });
 
-helper.decodeTests = true;
-describe('Yaz0 decode encoded tests', testFunctions);
+let helperDecode = new Helper_Functions();
+helperDecode.decodeTests = true;
+describe('Yaz0 decode encoded tests', () => { testFunctions(helperDecode) });

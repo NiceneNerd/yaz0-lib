@@ -8,20 +8,24 @@
 
 using Yaz0::Parser;
 
+Parser::Parser(std::vector<u8> *bufferOut)
+: Yaz0::Base(bufferOut)
+{
+    for(int i=0; i<8; ++i)
+        flags[i] = 0;
+}
+
 bool Parser::writeOut(u8 val)
 {
-    if(bufferOutPos < bufferOutSize)
-    {
-        bufferOut[bufferOutPos] = val;
-        ++bufferOutPos;
-    }
+    (*bufferOut)[bufferOutPos++] = val;
+
     return (bufferOutPos < bufferOutSize);
 }
 
 u8 Parser::readIn()
 {
-    if(bufferInPos > bufferInSize)
-        throw new std::out_of_range("maximum buffer in pos reached");
+    if(bufferInPos+1 >= bufferInSize)
+        throw new std::exception();
 
     return bufferIn[bufferInPos++];
 }
@@ -76,13 +80,10 @@ bool Parser::parseBlock()
             }
 
             //printf(" copy %d bytes @ %d\n", length, offset);
+
             for(int n=0; n<length; ++n)
             {
-                s32 copyOffset = (s32)bufferOutPos - (s32)offset;
-                if(copyOffset < 0)
-                    copyOffset = 0;
-
-                if(!writeOut(bufferOut[copyOffset]))
+                if(!writeOut((*bufferOut)[bufferOutPos - offset]))
                     return false;
             }
         }
@@ -116,7 +117,7 @@ bool Parser::decode(u8* buffer, u32 bufferSize, s32 dataSize)
     if(dataSize >= 0 && (u32)dataSize <= bufferOutSize)
         bufferOutSize = dataSize;
 
-    bufferOut.resize(bufferOutSize);
+    bufferOut->resize(bufferOutSize);
     
     // reade flags
     bufferInPos = 8;
@@ -125,18 +126,7 @@ bool Parser::decode(u8* buffer, u32 bufferSize, s32 dataSize)
         flags[i] = bufferIn[bufferInPos++];
 
     // read all blocks
-    try{
-        while(parseBlock());
-    }catch(...)
-    {
-        // might be an invalid file, but i don't care... still return the buffer
-    }
-
-    if(bufferOutPos != bufferOutSize)
-    {
-        printf("bufferOutPos: %d, bufferOutSize: %d\n", bufferOutPos, bufferOutSize);
-        return false;
-    }
+    while(parseBlock());
 
     return true;
 }

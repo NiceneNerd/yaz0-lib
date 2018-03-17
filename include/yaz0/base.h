@@ -16,12 +16,11 @@ namespace Yaz0
             u32 bufferInSize = 0;
             u32 bufferInPos  = 0;
 
-            std::vector<u8> *bufferOut = nullptr;
+            std::vector<u8> bufferOut;
             u32 bufferOutSize = 0;
             u32 bufferOutPos  = 0;
 
         public:
-            Base(std::vector<u8> *bufferOut);
 
             u8* getData();
             u32 getSize();

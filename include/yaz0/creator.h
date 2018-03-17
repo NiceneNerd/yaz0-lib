@@ -48,8 +48,6 @@ namespace Yaz0
             Chunk searchRepeatingBytes();
             
         public:
-            Creator(std::vector<u8> *bufferOut) : Base(bufferOut) {}
-
             bool encode(u8* buffer, u32 bufferSize, s32 dataSize = -1);
     };
 };

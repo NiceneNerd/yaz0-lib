@@ -12,21 +12,21 @@ using Yaz0::Creator;
 void Creator::writeFileHeader()
 {
     for(auto c : "Yaz0")
-        bufferOut->push_back(c);
+        bufferOut.push_back(c);
 
-    (*bufferOut)[4]   = ((bufferInSize >> 24) & 0xFF); // overwrite Yaz0's end of string zero
-    bufferOut->push_back((bufferInSize >> 16) & 0xFF);
-    bufferOut->push_back((bufferInSize >>  8) & 0xFF);
-    bufferOut->push_back((bufferInSize      ) & 0xFF);
+    bufferOut[4]     = ((bufferInSize >> 24) & 0xFF); // overwrite Yaz0's end of string zero
+    bufferOut.push_back((bufferInSize >> 16) & 0xFF);
+    bufferOut.push_back((bufferInSize >>  8) & 0xFF);
+    bufferOut.push_back((bufferInSize      ) & 0xFF);
 
     for(int padding=0; padding<8; ++padding)
-        bufferOut->push_back(0);
+        bufferOut.push_back(0);
 }
 
 u32 Creator::writeValue(u8 value)
 {
     addToHeader(Chunk_Type::Value);
-    bufferOut->push_back(value);
+    bufferOut.push_back(value);
     return moveOffset(1);
 }
 
@@ -38,8 +38,8 @@ u32 Creator::writeCopy(u32 offset, u32 length)
     if(offset < bufferInPos)
         offsetDiff = bufferInPos - offset - 1;
 
-    bufferOut->insert(bufferOut->end(), 3, 0);
-    auto buff = bufferOut->end() - 3;
+    bufferOut.insert(bufferOut.end(), 3, 0);
+    auto buff = bufferOut.end() - 3;
 
     buff[0] = (offsetDiff >> 8) & 0xF;
     buff[1] = offsetDiff & 0xFF;
@@ -48,8 +48,8 @@ u32 Creator::writeCopy(u32 offset, u32 length)
     {
         buff[2] = (length - 0x12) & 0xFF;
     }else{ // 2 bytes
-        buff[0] |= ((length - MIN_COPY_SIZE) & 0xF) << 4;
-        bufferOut->pop_back();
+        buff[0] |= ((length - MIN_COPY_SIZE + 1) & 0xF) << 4;
+        bufferOut.pop_back();
     }
 
     return moveOffset(length);
@@ -60,9 +60,9 @@ void Creator::createHeader()
     if(headerOffset != 0)
         writeHeader();
 
-    headerOffset = bufferOut->size();
+    headerOffset = bufferOut.size();
     headerPos = 7;
-    bufferOut->push_back(0);
+    bufferOut.push_back(0);
 }
 
 void Creator::addToHeader(Yaz0::Chunk_Type type)
@@ -80,7 +80,7 @@ void Creator::writeHeader()
 {
     if(headerPos != 7)
     {
-        (*bufferOut)[headerOffset] = headerValue;
+        bufferOut[headerOffset] = headerValue;
         headerValue = 0;
     }
 }
@@ -112,7 +112,7 @@ u32 Creator::moveOffset(u32 num)
 u32 sizeCounter = 0;
 void Creator::encodeByte()
 {
-    /*
+    
     if(++sizeCounter > 1024 * 10)
     {
         printf("pos: %dB/%dB || %dKB/%dKB || %d:MB/%dMB\n", 
@@ -120,7 +120,7 @@ void Creator::encodeByte()
             bufferInPos / 1024,        bufferInSize / 1024,
             bufferInPos / 1024 / 1024, bufferInSize / 1024 / 1024);
         sizeCounter = 0;
-    }*/
+    }
 
     auto bestChunk = Yaz0::Chunk(bufferIn[bufferInPos]);
     s32 bestByteSize = 0; // @OPT: use as start index?

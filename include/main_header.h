@@ -7,7 +7,11 @@
 /**** Libs ****/
 #include <cstdint>
 #include <vector>
-#include <nan.h>
+#include <stdio.h>
+#include <string.h>
+#include <exception>
+#include <stdexcept>
+#include <node_api.h>
 
 /**** Data Types ****/
 typedef std::uint8_t u8;

@@ -9,6 +9,8 @@ namespace Yaz0
     class Parser : public Base
     {
         private:
+            const u32 HEADER_SIZE = 16;
+
             u8 flags[8];
             u8 chunks[3];
 
@@ -18,8 +20,6 @@ namespace Yaz0
             bool parseBlock();
 
         public:
-            Parser(std::vector<u8> *bufferOut);
-
             bool decode(u8* buffer, u32 bufferSize, s32 dataSize = -1);
     };
 };

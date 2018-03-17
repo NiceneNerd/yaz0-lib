@@ -42,11 +42,11 @@ module.exports = class Helper_Functions
      */
     assertData(buffYaz, buffData, offset = null, length = null,)
     {
-        return assert.equal(buffData.compare(
+        return assert(buffData.compare(
             buffYaz, 
             offset != null ? offset : YAZ0_HEADER_SIZE, 
             length != null ? length : buffYaz.length
-        ), 0);
+        ) == 0);
     }
 
     /**
@@ -57,21 +57,45 @@ module.exports = class Helper_Functions
      */
     encodeAndAssert(bufferInArray, bufferTestArray, offset = null, length = null,)
     {
-        let bufferIn =Buffer.from(bufferInArray);
+        let bufferIn = Buffer.from(bufferInArray);
         let buffCompr = yaz0.encode(bufferIn);
+        let bufferDecoded = null;
 
         try{
             this.assertData(buffCompr, Buffer.from(bufferTestArray), offset, length);
             if(this.decodeTests)
             {
-                let bufferDecoded = yaz0.decode(buffCompr);
-                console.log(bufferIn);
-                console.log(bufferDecoded);
+                bufferDecoded = yaz0.decode(buffCompr);
+                
+                assert(bufferDecoded instanceof Buffer);
+                assert(bufferDecoded.compare(bufferIn) == 0);
             }
         }catch(e)
         {
             this.printBuffer(Buffer.from(bufferInArray), "Input-Buffer");
             this.printBuffer(buffCompr, "Yaz0-Buffer");
+            this.printBuffer(Buffer.from(bufferTestArray), "Test-Buffer");
+
+            if(bufferDecoded)
+                this.printBuffer(bufferDecoded, "Decoded-Buffer");  
+
+            console.log("");
+
+            throw e;
+        }
+    }
+
+    decodeAndAssert(bufferInArray, bufferTestArray)
+    {
+        let bufferIn = Buffer.from(bufferInArray);
+        let buffUncompr = yaz0.decode(bufferIn);
+
+        try{
+            this.assertData(buffUncompr, Buffer.from(bufferTestArray), 0);
+        }catch(e)
+        {
+            this.printBuffer(Buffer.from(bufferInArray), "Input-Buffer");
+            this.printBuffer(buffUncompr, "Yaz0-Buffer");
             this.printBuffer(Buffer.from(bufferTestArray), "Test-Buffer");
             console.log("");
 
@@ -88,12 +112,21 @@ module.exports = class Helper_Functions
         {
             bytes.push((length - 0x12) & 0xFF);
         }else{ // 3 bytes
-            bytes[0]  = ((length-3)  & 0xF) << 4;
+            bytes[0]  = ((length-2)  & 0xF) << 4;
         }
 
         bytes[0] |= (offset >> 8) & 0xF;
         bytes[1]  = offset & 0xFF;
 
         return bytes;
+    }
+
+    createHeader(length)
+    {
+        return [
+            0x59, 0x61, 0x7a, 0x30, 
+            ((length >> 24) & 0xFF), ((length >> 16) & 0xFF), ((length >> 8) & 0xFF), (length & 0xFF), // "Yaz0"
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        ];
     }
 };
