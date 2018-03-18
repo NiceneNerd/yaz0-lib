@@ -40,7 +40,7 @@ namespace Yaz0
             /**
              * searches for copies of the current byte(s) in the previous bytes
              */
-            Chunk searchCopyBytes(u32 scanBackOffset, u32 searchOffsetMax);
+            Chunk searchCopyBytes(u32 scanBackOffset);
 
             /**
              * searches only if the current byte is repeated right after it

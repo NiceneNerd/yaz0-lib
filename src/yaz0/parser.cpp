@@ -6,14 +6,15 @@
 
 #include "../../include/main_header.h"
 
+//#define DEBUG_OUTPUT 1
+
 using Yaz0::Parser;
 
 bool Parser::writeOut(u8 val)
 {
     if(bufferOutPos < bufferOutSize)
     {
-        bufferOut[bufferOutPos] = val;
-        ++bufferOutPos;
+        bufferOut[bufferOutPos++] = val;
     }
     return (bufferOutPos < bufferOutSize);
 }
@@ -30,23 +31,22 @@ bool Parser::parseBlock()
 {
     u8 header = readIn();
     
-    /*
-    printf("\n== Header @%#04x ==\n", bufferInPos);
-    printf("%c%c%c%c%c%c%c%c\n", 
-        ((header >> 7) & 1) ? '1' : 'C',
-        ((header >> 6) & 1) ? '1' : 'C',
-        ((header >> 5) & 1) ? '1' : 'C',
-        ((header >> 4) & 1) ? '1' : 'C',
-        ((header >> 3) & 1) ? '1' : 'C',
-        ((header >> 2) & 1) ? '1' : 'C',
-        ((header >> 1) & 1) ? '1' : 'C',
-        ((header >> 0) & 1) ? '1' : 'C'
-    );
-    */
+    #ifdef DEBUG_OUTPUT
+        printf("\n== Header @%#04x ==\n", bufferInPos);
+        printf("%c%c%c%c%c%c%c%c\n", 
+            ((header >> 7) & 1) ? '1' : 'C',((header >> 6) & 1) ? '1' : 'C',
+            ((header >> 5) & 1) ? '1' : 'C',((header >> 4) & 1) ? '1' : 'C',
+            ((header >> 3) & 1) ? '1' : 'C',((header >> 2) & 1) ? '1' : 'C',
+            ((header >> 1) & 1) ? '1' : 'C',((header >> 0) & 1) ? '1' : 'C'
+        );
+    #endif
+    
 
     for(int i=7; i>=0; --i)
     {
-        //printf("#%d | %#04x[y:%#04x]: ", i, bufferOutPos, bufferInPos);
+        #ifdef DEBUG_OUTPUT
+            printf("#%d | %#04x[y:%#04x]: ", i, bufferOutPos, bufferInPos);
+        #endif
 
         if(bufferOutPos >= bufferOutSize)
             return false;
@@ -54,9 +54,13 @@ bool Parser::parseBlock()
         int chunkType = (header >> i) & 1;
         if(chunkType == 1)
         {   
-            //u8 val = readIn();
-            //printf(" 1:1 (%#04x)\n", val);
-            if(!writeOut(readIn()))
+            u8 val = readIn();
+
+            #ifdef DEBUG_OUTPUT
+                printf(" 1:1 (%#04x)\n", val);
+            #endif
+
+            if(!writeOut(val))
                 return false;
         }else{
 
@@ -75,7 +79,10 @@ bool Parser::parseBlock()
                 length = ((chunks[0] >> 4) & 0xF) + 0x02;
             }
 
-            //printf(" copy %d bytes @ %d\n", length, offset);
+            #ifdef DEBUG_OUTPUT
+                printf(" copy %d bytes @ %d\n", length, offset);
+            #endif
+            
             for(int n=0; n<length; ++n)
             {
                 s32 copyOffset = (s32)bufferOutPos - (s32)offset;
@@ -132,11 +139,5 @@ bool Parser::decode(u8* buffer, u32 bufferSize, s32 dataSize)
         // might be an invalid file, but i don't care... still return the buffer
     }
 
-    if(bufferOutPos != bufferOutSize)
-    {
-        printf("bufferOutPos: %d, bufferOutSize: %d\n", bufferOutPos, bufferOutSize);
-        return false;
-    }
-
-    return true;
+    return (bufferOutPos == bufferOutSize);
 }

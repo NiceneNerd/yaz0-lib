@@ -194,6 +194,17 @@ let testFunctions = (helper) =>
                 ...helper.copyBytes(1, 0x110)
             ]);
         });
+
+        it('multi-byte repeating copy at start (1,2,3, 2,3, 2,3,..)', function() 
+        {   
+            helper.encodeAndAssert([
+                1,2,3, 2,3, 2,3, 2,3
+            ],[ 
+                0b11100000, 
+                1,2,3,
+                ...helper.copyBytes(2, 6),
+            ]);
+        });
     });
 
     describe('encoding (rules)', function() 
@@ -261,6 +272,31 @@ let testFunctions = (helper) =>
                 1, ...helper.copyBytes(1, 4),
                 0xA2,
                 ...helper.copyBytes(5, 4)
+            ]);
+        });
+
+        it('compare copy with possible future copies (TODO!)', function() 
+        {   
+            helper.encodeAndAssert([
+                0xA0, 1,1,1,1,1,1, 
+                0xA1, 5,1,1,1,
+                0xA2, 5,1,1,1,1,1
+            ],
+            /*[  // correct, would require recursively checking for better copies by branching off and skipping the copy
+                0b11011011,
+                0xA0, 1, ...helper.copyBytes(1, 5),
+                0xA1, 5, ...helper.copyBytes(5, 3),
+                0xA2, 5,
+                0b00000000,
+                ...helper.copyBytes(12, 5)
+            ],*/
+            [  // currently
+                0b11011010,
+                0xA0, 1, ...helper.copyBytes(1, 5),
+                0xA1, 5, ...helper.copyBytes(5, 3),
+                0xA2, ...helper.copyBytes(5, 4),
+                0b11000000,
+                1,1
             ]);
         });
     });

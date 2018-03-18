@@ -7,6 +7,8 @@
 #include "../../include/main_header.h"
 #include <algorithm>
 
+//#define DISPLAY_PROGRESS 1
+
 using Yaz0::Creator;
 
 void Creator::writeFileHeader()
@@ -68,7 +70,10 @@ void Creator::createHeader()
 void Creator::addToHeader(Yaz0::Chunk_Type type)
 {
     if(headerPos < 0) {
-        //printf("%c%c%c%c%c%c%c%c\n", ((headerValue >> 7) & 1) ? '1' : 'C',((headerValue >> 6) & 1) ? '1' : 'C',((headerValue >> 5) & 1) ? '1' : 'C',((headerValue >> 4) & 1) ? '1' : 'C',((headerValue >> 3) & 1) ? '1' : 'C',((headerValue >> 2) & 1) ? '1' : 'C',((headerValue >> 1) & 1) ? '1' : 'C',((headerValue >> 0) & 1) ? '1' : 'C');
+  /*      if(bufferInPos > 421){
+            printf("%c%c%c%c%c%c%c%c\n", ((headerValue >> 7) & 1) ? '1' : 'C',((headerValue >> 6) & 1) ? '1' : 'C',((headerValue >> 5) & 1) ? '1' : 'C',((headerValue >> 4) & 1) ? '1' : 'C',((headerValue >> 3) & 1) ? '1' : 'C',((headerValue >> 2) & 1) ? '1' : 'C',((headerValue >> 1) & 1) ? '1' : 'C',((headerValue >> 0) & 1) ? '1' : 'C');
+        }
+*/
         createHeader();
     }
 
@@ -112,15 +117,16 @@ u32 Creator::moveOffset(u32 num)
 u32 sizeCounter = 0;
 void Creator::encodeByte()
 {
-    
-    if(++sizeCounter > 1024 * 10)
-    {
-        printf("pos: %dB/%dB || %dKB/%dKB || %d:MB/%dMB\n", 
-            bufferInPos,               bufferInSize,
-            bufferInPos / 1024,        bufferInSize / 1024,
-            bufferInPos / 1024 / 1024, bufferInSize / 1024 / 1024);
-        sizeCounter = 0;
-    }
+    #ifdef DISPLAY_PROGRESS
+        if(++sizeCounter > 1024 * 20)
+        {
+            printf("pos: %dB/%dB || %dKB/%dKB || %d:MB/%dMB\n", 
+                bufferInPos,               bufferInSize,
+                bufferInPos / 1024,        bufferInSize / 1024,
+                bufferInPos / 1024 / 1024, bufferInSize / 1024 / 1024);
+            sizeCounter = 0;
+        }
+    #endif
 
     auto bestChunk = Yaz0::Chunk(bufferIn[bufferInPos]);
     s32 bestByteSize = 0; // @OPT: use as start index?
@@ -135,10 +141,9 @@ void Creator::encodeByte()
 
     // scan for previous bytes
     u32 maxOffset = std::min(bufferInPos, MAX_OFFSET);
-    s32 searchOffsetMax = bufferInPos - 1; // maximum value offset to go to
     for(u32 scanBackOffset=1; scanBackOffset<=maxOffset; ++scanBackOffset) // scan through previous bytes
     {
-        auto chunk = searchCopyBytes(scanBackOffset, searchOffsetMax);
+        auto chunk = searchCopyBytes(scanBackOffset);
         if(!chunk.empty() && chunk.getSavedSize() > bestByteSize)
         {
             bestChunk = chunk;
@@ -149,7 +154,7 @@ void Creator::encodeByte()
     writeChunk(bestChunk);
 }
 
-Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset, u32 searchOffsetMax)
+Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset)
 {
     auto chunk = Chunk();
     s32 searchOffset = bufferInPos - scanBackOffset;
@@ -163,9 +168,6 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset, u32 searchOffsetMax)
         for(u32 sameByteCount=0; sameByteCount<MAX_COPY_LENGTH; ++sameByteCount) // go forward again until a byte dosn't match
         {
             u32 currentSearchOffset = searchOffset + sameByteCount;
-            if(currentSearchOffset > searchOffsetMax)
-                currentSearchOffset = searchOffsetMax;
-
             u32 currentValueOffset  = bufferInPos + sameByteCount;
 
             if(currentValueOffset >= bufferInSize || bufferIn[currentSearchOffset] != bufferIn[currentValueOffset])
