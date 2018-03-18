@@ -164,18 +164,9 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset)
     
     if(bufferIn[searchOffset] == bufferIn[bufferInPos]) // same byte found
     {
-        u8* ptrData = bufferIn + bufferInPos;
-        u8* ptrCopy = bufferIn + searchOffset;
-        size_t searchLength = std::min(MAX_COPY_LENGTH, bufferInSize - std::max(bufferInPos, (u32)searchOffset));
-
-        auto diffPos = std::mismatch(ptrData, ptrData + searchLength, ptrCopy);
-        auto sameByteCount = diffPos.first - ptrData;
-
-        if(sameByteCount >= MIN_COPY_SIZE)
-        {
-            chunk = Chunk(searchOffset, sameByteCount);                    
-        }
-        return chunk;
+        auto sameByteCount = getSameBytes(searchOffset);
+        if(sameByteCount)
+             return Chunk(searchOffset, sameByteCount);                    
     }
 
     return chunk;
@@ -183,27 +174,37 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset)
 
 Yaz0::Chunk Creator::searchRepeatingBytes()
 {
-    u32 copyLength = 0;
-    for(u32 scanOffset=bufferInPos; scanOffset<=bufferInSize; ++scanOffset)
+    auto chunk = Chunk();
+
+    if((bufferInPos + 1) >= bufferInSize)
+        return chunk;
+
+    auto sameByteCount = getSameBytes(bufferInPos + 1);
+    if(sameByteCount)
     {
-        if(copyLength > MAX_COPY_LENGTH || scanOffset == bufferInSize || bufferIn[scanOffset] != bufferIn[bufferInPos])
-        {
-            u32 sameByteCount = scanOffset - bufferInPos;
-            if(sameByteCount > MIN_COPY_SIZE+1)
-            {
-                auto chunk = Chunk(
-                    bufferIn[bufferInPos],
-                    bufferInPos, sameByteCount-1
-                );
-                return chunk;
-            }
-            break;
-        }
-        ++copyLength;
+        return Chunk(
+            bufferIn[bufferInPos],
+            bufferInPos, sameByteCount
+        );
     }
 
-    auto chunk = Chunk();
     return chunk;
+}
+
+u32 Creator::getSameBytes(u32 copyOffset)
+{
+    u8* ptrData = bufferIn + bufferInPos;
+    u8* ptrCopy = bufferIn + copyOffset;
+    size_t searchLength = std::min(MAX_COPY_LENGTH, bufferInSize - std::max(bufferInPos, copyOffset));
+
+    auto diffPos = std::mismatch(ptrData, ptrData + searchLength, ptrCopy);
+    auto sameByteCount = diffPos.first - ptrData;
+
+    if(sameByteCount >= MIN_COPY_SIZE)
+    {
+        return sameByteCount;
+    }
+    return 0;
 }
 
 bool Creator::encode(u8* buffer, u32 bufferSize, s32 dataSize)

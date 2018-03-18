@@ -47,6 +47,9 @@ namespace Yaz0
              */
             Chunk searchRepeatingBytes();
             
+
+            inline u32 getSameBytes(u32 copyOffset);
+
         public:
             bool encode(u8* buffer, u32 bufferSize, s32 dataSize = -1);
     };
