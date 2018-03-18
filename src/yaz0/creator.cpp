@@ -161,25 +161,21 @@ Yaz0::Chunk Creator::searchCopyBytes(u32 scanBackOffset)
 
     if(searchOffset < 0)
         return chunk;
-
+    
     if(bufferIn[searchOffset] == bufferIn[bufferInPos]) // same byte found
     {
-        // check next 3 bytes
-        for(u32 sameByteCount=0; sameByteCount<MAX_COPY_LENGTH; ++sameByteCount) // go forward again until a byte dosn't match
-        {
-            u32 currentSearchOffset = searchOffset + sameByteCount;
-            u32 currentValueOffset  = bufferInPos + sameByteCount;
+        u8* ptrData = bufferIn + bufferInPos;
+        u8* ptrCopy = bufferIn + searchOffset;
+        size_t searchLength = std::min(MAX_COPY_LENGTH, bufferInSize - std::max(bufferInPos, (u32)searchOffset));
 
-            if(currentValueOffset >= bufferInSize || bufferIn[currentSearchOffset] != bufferIn[currentValueOffset])
-            {
-                if(sameByteCount >= MIN_COPY_SIZE)
-                {
-                    //printf("   |--> @%#04x -> @%#04x-%#04x -> found (%d) => %#02x \n", bufferInPos, searchOffset, searchOffset + sameByteCount-1, sameByteCount, bufferIn[searchOffset]);    
-                    chunk = Chunk(searchOffset, sameByteCount);                    
-                }
-                return chunk;
-            }
+        auto diffPos = std::mismatch(ptrData, ptrData + searchLength, ptrCopy);
+        auto sameByteCount = diffPos.first - ptrData;
+
+        if(sameByteCount >= MIN_COPY_SIZE)
+        {
+            chunk = Chunk(searchOffset, sameByteCount);                    
         }
+        return chunk;
     }
 
     return chunk;
