@@ -5,6 +5,7 @@
         "target_name": "yaz0",
         "sources": [
             "src/main.cpp",
+                "src/yaz0/worker/copy_search.cpp",
                 "src/yaz0/chunk.cpp",
                 "src/yaz0/base.cpp",
                 "src/yaz0/parser.cpp",

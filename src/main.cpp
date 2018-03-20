@@ -13,19 +13,28 @@ napi_value Yaz0_Encode(napi_env env, napi_callback_info info)
     napi_value argv[2];
 
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+        return nullptr;
+    }
 
     int32_t bufferSizeLimit = -1;
     u8* bufferIn = nullptr;
     size_t bufferInSize = 0;
 
     if(napi_get_buffer_info(env, argv[0], (void**)&bufferIn, &bufferInSize) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Invalid Buffer was passed as argument");
+        return nullptr;
+    }
 
     if(argc > 1)
     {
         if(napi_get_value_int32(env, argv[1], &bufferSizeLimit) != napi_ok)
+        {
             napi_throw_error(env, NULL, "Can't parse the buffer limit value");
+            return nullptr;
+        }
     }
     
     auto yaz0 = Yaz0::Creator();
@@ -35,7 +44,10 @@ napi_value Yaz0_Encode(napi_env env, napi_callback_info info)
     void* createdBuffer;
 
     if(napi_create_buffer_copy(env, yaz0.getSize(), (void**)yaz0.getData(), &createdBuffer, &resultBuffer) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Unable to create Buffer");
+        return nullptr;
+    }
 
     return resultBuffer;
 }
@@ -46,32 +58,45 @@ napi_value Yaz0_Decode(napi_env env, napi_callback_info info)
     napi_value argv[argc];
 
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Failed to parse arguments");
+        return nullptr;
+    }
 
     int32_t bufferSizeLimit = -1;
     u8* bufferIn = nullptr;
     size_t bufferInSize = 0;
 
     if(napi_get_buffer_info(env, argv[0], (void**)&bufferIn, &bufferInSize) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Invalid Buffer was passed as argument");
+        return nullptr;
+    }
 
     if(argc > 1)
     {
         if(napi_get_value_int32(env, argv[1], &bufferSizeLimit) != napi_ok)
+        {
             napi_throw_error(env, NULL, "Can't parse the buffer limit value");
+            return nullptr;
+        }
     }
 
     auto yaz0 = Yaz0::Parser();
     if(!yaz0.decode(bufferIn, bufferInSize, bufferSizeLimit))
     {
         napi_throw_error(env, NULL, "Error parsing file");
+        return nullptr;
     }
 
     napi_value resultBuffer;
     void* createdBuffer;
 
     if(napi_create_buffer_copy(env, yaz0.getSize(), (void**)yaz0.getData(), &createdBuffer, &resultBuffer) != napi_ok)
+    {
         napi_throw_error(env, NULL, "Unable to create Buffer");
+        return nullptr;
+    }
 
     return resultBuffer;
 }

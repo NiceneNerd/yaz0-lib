@@ -6,7 +6,7 @@
 
 let yaz0 = require("./../bindings.js");
 const fs = require("fs");
-
+return;
 const testFiles = [
     //"/home/max/Documents/TEST/yaz0/DgnObj_AncientBallSwitch_A-00.sbfres", // 9sec
 

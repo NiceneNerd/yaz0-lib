@@ -21,7 +21,7 @@ bool Parser::writeOut(u8 val)
 
 u8 Parser::readIn()
 {
-    if(bufferInPos > bufferInSize)
+    if(bufferInPos >= bufferInSize)
         throw new std::out_of_range("maximum buffer in pos reached");
 
     return bufferIn[bufferInPos++];

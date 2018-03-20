@@ -5,11 +5,12 @@
 */
 
 const assert = require('assert');
+var expect = require('chai').expect;
 const yaz0   = require("./../bindings.js");
 
 const Helper_Functions = require("./helper_functions.js");
 const helper = new Helper_Functions();
-return;
+
 describe('Yaz0 decoding', () =>
 {
     describe('general', () =>
@@ -23,9 +24,11 @@ describe('Yaz0 decoding', () =>
 
         it('correct output size', function() 
         {   
+            const size = 0x1230;
             helper.decodeAndAssert([
-                ...helper.createHeader(0x1234), 0
-            ], new Array(0x1234).fill(0));
+                ...helper.createHeader(size), 
+                ...(new Array(size + (size/8))).fill(0xFF)
+            ], new Array(size).fill(0xFF));
         });
     });
 
@@ -114,6 +117,44 @@ describe('Yaz0 decoding', () =>
 
     describe('error handling', () =>
     {
+        it('incomplete header', function() 
+        {   
+            expect(() => yaz0.decode(Buffer.from([42,42,42]))).throw("Error parsing file");
+        });
+
+        it('file-size in header too big', function() 
+        {   
+            expect(() => yaz0.decode(Buffer.from([
+                ...helper.createHeader(10), 
+                0b10000000,
+                0xA0
+            ]))).throw("Error parsing file");
+        });
+
+        it('file-size in header too big and no data', function() 
+        {   
+            expect(() => yaz0.decode(Buffer.from([
+                ...helper.createHeader(10), 
+                0b10101010,
+            ]))).throw("Error parsing file");
+        });
+
+        it('header but no value', function() 
+        {   
+            expect(() => yaz0.decode(Buffer.from([
+                ...helper.createHeader(1), 
+                0b10000000
+            ]))).throw("Error parsing file");
+        });
+
+        it('header but no copy-data', function() 
+        {   
+            expect(() => yaz0.decode(Buffer.from([
+                ...helper.createHeader(1), 
+                0b00000000
+            ]))).throw("Error parsing file");
+        });
+
         it('copy offset too big', function() 
         {   
             helper.decodeAndAssert([
@@ -125,39 +166,16 @@ describe('Yaz0 decoding', () =>
             ]);
         });
 
-        it('file-size in header too big', function() 
+        it('copy length too big', function() 
         {   
             helper.decodeAndAssert([
-                ...helper.createHeader(10), 
+                ...helper.createHeader(4), 
                 0b10000000,
-                0xA0
+                0xA0, ...helper.copyBytes(10, 5)
             ], [
-                0xA0, 0,0,0, 0,0,0, 0,0,0
+                0xA0, 0xA0, 0xA0, 0xA0
             ]);
         });
 
-        it('file-size in header too big and no data', function() 
-        {   
-            helper.decodeAndAssert([
-                ...helper.createHeader(10), 
-                0b10101010,
-            ], []);
-        });
-
-        it('header but no value', function() 
-        {   
-            helper.decodeAndAssert([
-                ...helper.createHeader(1), 
-                0b10000000
-            ], []);
-        });
-
-        it('header but no copy-data', function() 
-        {   
-            helper.decodeAndAssert([
-                ...helper.createHeader(1), 
-                0b00000000
-            ], [0]);
-        });
     });
 });
