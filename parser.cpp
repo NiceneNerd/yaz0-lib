@@ -4,39 +4,62 @@
 * @license GNU-GPLv3 - see the "LICENSE" file in the root directory
 */
 
-#include "../include/main_header.h"
+#include "../../include/main_header.h"
 
-YAZ0::YAZ0(std::vector<u8> *bufferOut)
-: bufferOut(bufferOut)
+using Yaz0::Parser;
+
+Parser::Parser(std::vector<u8> *bufferOut)
+: Yaz0::Base(bufferOut)
 {
     for(int i=0; i<8; ++i)
         flags[i] = 0;
 }
 
-bool YAZ0::writeOut(u8 val)
+bool Parser::writeOut(u8 val)
 {
     (*bufferOut)[bufferOutPos++] = val;
 
     return (bufferOutPos < bufferOutSize);
 }
 
-u8 YAZ0::readIn()
+u8 Parser::readIn()
 {
+    if(bufferInPos+1 >= bufferInSize)
+        throw new std::exception();
+
     return bufferIn[bufferInPos++];
 }
 
-bool YAZ0::parseBlock()
+bool Parser::parseBlock()
 {
     u8 header = readIn();
+    
+    /*
+    printf("\n== Header @%#04x ==\n", bufferInPos);
+    printf("%c%c%c%c%c%c%c%c\n", 
+        ((header >> 7) & 1) ? '1' : 'C',
+        ((header >> 6) & 1) ? '1' : 'C',
+        ((header >> 5) & 1) ? '1' : 'C',
+        ((header >> 4) & 1) ? '1' : 'C',
+        ((header >> 3) & 1) ? '1' : 'C',
+        ((header >> 2) & 1) ? '1' : 'C',
+        ((header >> 1) & 1) ? '1' : 'C',
+        ((header >> 0) & 1) ? '1' : 'C'
+    );
+    */
 
     for(int i=7; i>=0; --i)
     {
+        //printf("#%d | %#04x[y:%#04x]: ", i, bufferOutPos, bufferInPos);
+
         if(bufferOutPos >= bufferOutSize)
             return false;
 
         int chunkType = (header >> i) & 1;
         if(chunkType == 1)
-        {
+        {   
+            //u8 val = readIn();
+            //printf(" 1:1 (%#04x)\n", val);
             if(!writeOut(readIn()))
                 return false;
         }else{
@@ -56,6 +79,8 @@ bool YAZ0::parseBlock()
                 length = ((chunks[0] >> 4) & 0xF) + 0x02;
             }
 
+            //printf(" copy %d bytes @ %d\n", length, offset);
+
             for(int n=0; n<length; ++n)
             {
                 if(!writeOut((*bufferOut)[bufferOutPos - offset]))
@@ -67,8 +92,14 @@ bool YAZ0::parseBlock()
     return true;
 }
 
-bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
+bool Parser::decode(u8* buffer, u32 bufferSize, s32 dataSize)
 {
+    bufferInSize = bufferSize;
+    if(bufferSize < HEADER_SIZE)
+    {
+        return false;
+    }
+
     bufferIn = buffer;
 
     if(memcmp(bufferIn, "Yaz0", 4) != 0)
@@ -83,11 +114,11 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
         return false;
     }
 
-    if(dataSize >= 0 && dataSize <= bufferOutSize)
+    if(dataSize >= 0 && (u32)dataSize <= bufferOutSize)
         bufferOutSize = dataSize;
 
     bufferOut->resize(bufferOutSize);
-
+    
     // reade flags
     bufferInPos = 8;
 
@@ -98,15 +129,4 @@ bool YAZ0::decode(u8* buffer, u32 bufferSize, s32 dataSize)
     while(parseBlock());
 
     return true;
-}
-
-
-u8* YAZ0::getData()
-{
-    return bufferOut->data();
-}
-
-u32 YAZ0::getSize()
-{
-    return bufferOutSize;
 }
