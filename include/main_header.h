@@ -7,7 +7,12 @@
 /**** Libs ****/
 #include <cstdint>
 #include <vector>
-#include <nan.h>
+#include <stdio.h>
+#include <string.h>
+#include <exception>
+#include <stdexcept>
+#include <thread>
+#include <node_api.h>
 
 /**** Data Types ****/
 typedef std::uint8_t u8;
@@ -20,4 +25,8 @@ typedef std::uint32_t u32;
 typedef std::int32_t s32;
 
 /**** Header ****/
-#include "yaz0.h"
+
+#include "yaz0/chunk.h"
+#include "yaz0/base.h"
+#include "yaz0/parser.h"
+#include "yaz0/creator.h"
