@@ -26,8 +26,6 @@ typedef std::int32_t s32;
 
 /**** Header ****/
 
-#include "yaz0/worker/copy_search.h"
-
 #include "yaz0/chunk.h"
 #include "yaz0/base.h"
 #include "yaz0/parser.h"

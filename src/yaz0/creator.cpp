@@ -209,12 +209,8 @@ u32 Creator::getSameBytes(u32 copyOffset)
 
 bool Creator::encode(u8* buffer, u32 bufferSize, s32 dataSize)
 {
-    //auto worker = Yaz0::Worker::Copy_Search();
-    //worker.start();
-
     bufferIn = buffer;
     bufferInSize = dataSize >= 0 ? dataSize : bufferSize;
-
     writeFileHeader();
 
     createHeader();
@@ -223,8 +219,6 @@ bool Creator::encode(u8* buffer, u32 bufferSize, s32 dataSize)
         encodeByte();
 
     writeHeader(); // write a (maybe) uncompleted header
-
-    //worker.stop();
 
     return true;
 }

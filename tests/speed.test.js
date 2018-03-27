@@ -1,3 +1,5 @@
+return;
+
 /**
 * @copyright 2018 - Max Bebök
 * @author Max Bebök
@@ -6,7 +8,7 @@
 
 let yaz0 = require("./../bindings.js");
 const fs = require("fs");
-return;
+
 const testFiles = [
     //"/home/max/Documents/TEST/yaz0/DgnObj_AncientBallSwitch_A-00.sbfres", // 9sec
 
@@ -35,6 +37,7 @@ for(let filePath of testFiles)
         console.log("====== TIME ======");
         console.log(`Total: ${msDiff.toPrecision(6)}ms`);
         console.log(`Byte : ${msPerByte.toPrecision(6)}ms/byte`);
+        console.log(`Output-size: ${(buffCompr.length/1024).toPrecision(4)}kb`);
     }
     //fs.writeFileSync(filePath + ".yaz0", buffCompr);
 }
