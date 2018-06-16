@@ -55,7 +55,7 @@ napi_value Yaz0_Encode(napi_env env, napi_callback_info info)
 napi_value Yaz0_Decode(napi_env env, napi_callback_info info) 
 {
     size_t argc = 2;
-    napi_value argv[argc];
+    napi_value argv[2];
 
     if(napi_get_cb_info(env, info, &argc, argv, NULL, NULL) != napi_ok)
     {

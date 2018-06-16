@@ -10,6 +10,7 @@
 //#define DISPLAY_PROGRESS 1
 
 using Yaz0::Creator;
+using Yaz0::Chunk;
 
 void Creator::writeFileHeader()
 {
